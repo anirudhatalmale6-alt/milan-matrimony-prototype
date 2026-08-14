@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Manage members &middot; {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <div class="page-head-row">
+      <div>
+        <p class="eyebrow">Staff only</p>
+        <h1>Manage members</h1>
+        <p>View every account and deactivate anyone who should no longer have access.</p>
+      </div>
+      <a class="btn btn-quiet" href="/admin/">Full Django admin</a>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat">
+      <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-label">Accounts</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ stats.active }}</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ stats.unverified }}</div>
+      <div class="stat-label">Unverified</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ stats.published }}</div>
+      <div class="stat-label">Live profiles</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <form method="get">
+      <input type="search" name="q" value="{{ query }}" placeholder="Search name or email">
+      <select name="status" onchange="this.form.submit()">
+        <option value="all" {% if status == 'all' %}selected{% endif %}>All accounts</option>
+        <option value="active" {% if status == 'active' %}selected{% endif %}>Active only</option>
+        <option value="deactivated" {% if status == 'deactivated' %}selected{% endif %}>Deactivated</option>
+        <option value="unverified" {% if status == 'unverified' %}selected{% endif %}>Unverified email</option>
+      </select>
+      <button type="submit" class="btn btn-ghost btn-sm">Search</button>
+    </form>
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="table-scroll">
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Joined</th>
+            <th>Email status</th>
+            <th>Photos</th>
+            <th>Profile</th>
+            <th>Account</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for profile in page_obj %}
+            <tr>
+              <td class="cell-name">
+                <a href="{{ profile.get_absolute_url }}">{{ profile.full_name|default:"—" }}</a>
+              </td>
+              <td class="cell-email">{{ profile.user.email }}</td>
+              <td>{{ profile.user.date_joined|date:"j M Y" }}</td>
+              <td>
+                {% if profile.user.email_verified_at %}
+                  <span class="pill pill-ok">Verified</span>
+                {% else %}
+                  <span class="pill pill-warn">Unverified</span>
+                {% endif %}
+              </td>
+              <td>{{ profile.photo_count }}</td>
+              <td>
+                {% if profile.published_at %}
+                  <span class="pill pill-ok">Live</span>
+                {% else %}
+                  <span class="pill pill-warn">Incomplete</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if profile.user.is_active %}
+                  <span class="pill pill-ok">Active</span>
+                {% else %}
+                  <span class="pill pill-off">Deactivated</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if not profile.user.is_superuser %}
+                  <form method="post"
+                        action="{% url 'profiles:admin_toggle_active' profile.pk %}">
+                    {% csrf_token %}
+                    {# Return to this exact search / filter / page. #}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit"
+                            class="btn btn-sm {% if profile.user.is_active %}btn-danger{% else %}btn-quiet{% endif %}">
+                      {% if profile.user.is_active %}Deactivate{% else %}Reactivate{% endif %}
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="help-text">Administrator</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% include "partials/pagination.html" with page_obj=page_obj querystring=querystring %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-mark" aria-hidden="true">&#10022;</div>
+      <h2>No accounts match</h2>
+      <p>Try a different search or filter.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

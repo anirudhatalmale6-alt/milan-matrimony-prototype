@@ -1,0 +1,59 @@
+{% comment %}
+Table-based layout with inline styles — the only markup email clients render
+consistently.
+{% endcomment %}
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#fbf8f4;font-family:Helvetica,Arial,sans-serif;color:#241d22;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fbf8f4;padding:32px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+               style="max-width:520px;background:#ffffff;border:1px solid #e8ded4;border-radius:16px;">
+          <tr>
+            <td style="padding:32px 32px 8px;text-align:center;">
+              <div style="font-family:Georgia,serif;font-size:26px;font-weight:bold;color:#241d22;">
+                <span style="color:#c0973f;">&#10022;</span> {{ site_name }}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 32px 0;">
+              <h1 style="font-family:Georgia,serif;font-size:24px;font-weight:normal;margin:16px 0 8px;">
+                Confirm your email address
+              </h1>
+              <p style="font-size:15px;line-height:1.6;color:#5c5158;margin:0 0 24px;">
+                Thanks for joining {{ site_name }}. Tap the button below to activate your
+                account and start building your profile.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 8px;" align="center">
+              <a href="{{ verification_url }}"
+                 style="display:inline-block;background:#7b2e46;color:#ffffff;text-decoration:none;
+                        padding:14px 30px;border-radius:999px;font-size:15px;font-weight:bold;">
+                Confirm my email
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px 32px;">
+              <p style="font-size:13px;line-height:1.6;color:#8b7f86;margin:0 0 10px;">
+                The link is valid for {{ expiry_hours }} hours. If the button does not work,
+                copy this address into your browser:
+              </p>
+              <p style="font-size:12px;line-height:1.5;color:#7b2e46;word-break:break-all;margin:0;">
+                {{ verification_url }}
+              </p>
+              <p style="font-size:13px;line-height:1.6;color:#8b7f86;margin:18px 0 0;">
+                If you did not create an account, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% comment %}
+Shared two-column shell for every signed-out page: brand panel on the left,
+the form on the right. Collapses to a single column on small screens.
+{% endcomment %}
+
+{% block body_class %}auth-body{% endblock %}
+
+{# Messages are rendered inside the card on these pages, not above the page. #}
+{% block messages %}{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <aside class="auth-aside">
+    <div>
+      <span class="brand">
+        <span class="brand-mark" aria-hidden="true">&#10022;</span>
+        <span class="brand-name">{{ SITE_NAME }}</span>
+      </span>
+    </div>
+
+    <div>
+      <h1>{% block aside_heading %}{{ SITE_TAGLINE }}{% endblock %}</h1>
+      <p class="lede">{% block aside_text %}A private, members-only space to introduce yourself
+        and meet families looking for the same thing you are.{% endblock %}</p>
+      <ul class="auth-points">
+        <li>Members only &mdash; nothing is visible to the public.</li>
+        <li>Every address is confirmed by email before an account goes live.</li>
+        <li>Up to ten photos per profile, with the one you choose leading.</li>
+      </ul>
+    </div>
+
+    <p class="lede" style="font-size:.85rem;opacity:.7;margin:0;">
+      &copy; {% now "Y" %} {{ SITE_NAME }}
+    </p>
+  </aside>
+
+  <div class="auth-main">
+    <div class="auth-card">
+      {% if messages %}
+        <div class="messages" style="margin-bottom:20px;margin-top:0;">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}">
+              {% if 'safe' in message.extra_tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block auth_card %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+Welcome to {{ site_name }}.
+
+Please confirm your email address by opening the link below:
+
+{{ verification_url }}
+
+The link is valid for {{ expiry_hours }} hours. If you did not create an account,
+you can ignore this message and nothing further will happen.
+
+-- The {{ site_name }} team

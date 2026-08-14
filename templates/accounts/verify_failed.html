@@ -1,0 +1,19 @@
+{% extends "accounts/base_auth.html" %}
+
+{% block title %}Link problem &middot; {{ SITE_NAME }}{% endblock %}
+{% block aside_heading %}That link did not work{% endblock %}
+{% block aside_text %}Verification links expire so an old email cannot be used to take over
+an account.{% endblock %}
+
+{% block auth_card %}
+  <h2>We could not confirm that link</h2>
+  <p class="sub">{{ reason }}</p>
+
+  <a class="btn btn-primary btn-block" href="{% url 'accounts:resend_verification' %}">
+    Send me a new link
+  </a>
+
+  <div class="auth-foot">
+    <a href="{% url 'accounts:login' %}">Back to sign in</a>
+  </div>
+{% endblock %}

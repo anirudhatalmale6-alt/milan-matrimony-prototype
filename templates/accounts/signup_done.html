@@ -1,0 +1,29 @@
+{% extends "accounts/base_auth.html" %}
+
+{% block title %}Check your email &middot; {{ SITE_NAME }}{% endblock %}
+{% block aside_heading %}One last step{% endblock %}
+{% block aside_text %}We confirm every address so members know the people they meet here
+are real.{% endblock %}
+
+{% block auth_card %}
+  <h2>Check your inbox</h2>
+  <p class="sub">
+    {% if email %}
+      We have sent a confirmation link to <strong>{{ email }}</strong>.
+    {% else %}
+      We have sent you a confirmation link.
+    {% endif %}
+    Click it to activate your account &mdash; it stays valid for {{ expiry_hours }} hours.
+  </p>
+
+  <p class="help-text">
+    Nothing yet? It can take a minute, and it sometimes lands in the spam folder.
+  </p>
+
+  <a class="btn btn-ghost btn-block" href="{% url 'accounts:resend_verification' %}"
+     style="margin-top:18px;">Send the link again</a>
+
+  <div class="auth-foot">
+    <a href="{% url 'accounts:login' %}">Back to sign in</a>
+  </div>
+{% endblock %}

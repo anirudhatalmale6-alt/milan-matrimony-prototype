@@ -1,0 +1,16 @@
+{% comment %}
+Pager that keeps any existing querystring (search, status filter) intact.
+{% endcomment %}
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="Pagination">
+  {% if page_obj.has_previous %}
+    <a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">&larr; Previous</a>
+  {% endif %}
+
+  <span class="current">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+  {% if page_obj.has_next %}
+    <a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Next &rarr;</a>
+  {% endif %}
+</nav>
+{% endif %}

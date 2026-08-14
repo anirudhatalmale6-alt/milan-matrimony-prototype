@@ -1,0 +1,40 @@
+{% extends "accounts/base_auth.html" %}
+
+{% block title %}Create your account &middot; {{ SITE_NAME }}{% endblock %}
+{% block aside_heading %}Begin your search{% endblock %}
+{% block aside_text %}Create an account, confirm your email, and build a profile that
+speaks for you.{% endblock %}
+
+{% block auth_card %}
+  <h2>Create your account</h2>
+  <p class="sub">It takes a minute. You will add your details after confirming your email.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:18px;">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+    {% endif %}
+
+    {% include "partials/field.html" with field=form.email %}
+    {% include "partials/field.html" with field=form.password1 %}
+    {% include "partials/field.html" with field=form.password2 %}
+
+    <div class="checkbox-field {% if form.accept_terms.errors %}has-error{% endif %}">
+      {{ form.accept_terms }}
+      <label for="{{ form.accept_terms.id_for_label }}">{{ form.accept_terms.label }}</label>
+    </div>
+    {% if form.accept_terms.errors %}
+      <ul class="field-errors" style="margin-top:-12px;margin-bottom:16px;">
+        {% for error in form.accept_terms.errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary btn-block">Create account</button>
+  </form>
+
+  <div class="auth-foot">
+    Already a member? <a href="{% url 'accounts:login' %}">Sign in</a>
+  </div>
+{% endblock %}

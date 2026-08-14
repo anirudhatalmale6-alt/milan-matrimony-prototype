@@ -1,0 +1,14 @@
+{% comment %}
+Renders one form field with its label, help text and errors.
+Usage: {% include "partials/field.html" with field=form.email %}
+{% endcomment %}
+<div class="field {% if field.errors %}has-error{% endif %} {{ wrapper_class }}">
+  <label for="{{ field.id_for_label }}">
+    {{ field.label }}{% if field.field.required %} <span class="required-dot" aria-hidden="true">*</span>{% endif %}
+  </label>
+  {{ field }}
+  {% if field.help_text %}<p class="help-text">{{ field.help_text }}</p>{% endif %}
+  {% if field.errors %}
+    <ul class="field-errors">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  {% endif %}
+</div>

@@ -1,0 +1,71 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+  <meta name="description" content="{{ SITE_TAGLINE }}">
+  {% comment %}Both palettes are supplied, so phone "auto dark mode" does not
+  repaint the page with its own guessed colours.{% endcomment %}
+  <meta name="color-scheme" content="light dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+{% if user.is_authenticated %}
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="{% url 'profiles:browse' %}">
+      <span class="brand-mark" aria-hidden="true">&#10022;</span>
+      <span class="brand-name">{{ SITE_NAME }}</span>
+    </a>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="nav-burger" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </label>
+
+    <nav class="site-nav">
+      <a href="{% url 'profiles:browse' %}" {% if request.resolver_match.url_name == 'browse' %}class="is-current"{% endif %}>Members</a>
+      <a href="{% url 'profiles:me' %}" {% if request.resolver_match.url_name == 'me' %}class="is-current"{% endif %}>My profile</a>
+      <a href="{% url 'profiles:edit' %}" {% if request.resolver_match.url_name == 'edit' %}class="is-current"{% endif %}>Edit</a>
+      {% if user.is_staff %}
+        <a href="{% url 'profiles:admin_members' %}" {% if request.resolver_match.url_name == 'admin_members' %}class="is-current"{% endif %}>Manage</a>
+      {% endif %}
+      <form method="post" action="{% url 'accounts:logout' %}" class="nav-logout">
+        {% csrf_token %}
+        <button type="submit" class="link-button">Sign out</button>
+      </form>
+    </nav>
+  </div>
+</header>
+{% endif %}
+
+{% block messages %}
+  {% if messages %}
+  <div class="wrap messages">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }}">
+        {% if 'safe' in message.extra_tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>&copy; {% now "Y" %} {{ SITE_NAME }}</span>
+    <span class="footer-tagline">{{ SITE_TAGLINE }}</span>
+  </div>
+</footer>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

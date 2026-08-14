@@ -1,0 +1,33 @@
+{% extends "accounts/base_auth.html" %}
+
+{% block title %}Sign in &middot; {{ SITE_NAME }}{% endblock %}
+
+{% block auth_card %}
+  <h2>Welcome back</h2>
+  <p class="sub">Sign in to continue to your profile.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:18px;">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+    {% endif %}
+
+    {% include "partials/field.html" with field=form.username %}
+    {% include "partials/field.html" with field=form.password %}
+
+    {# Preserve the page the login gate bounced the visitor away from. #}
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+
+    <p style="text-align:center;margin:16px 0 0;font-size:.9rem;">
+      <a href="{% url 'accounts:password_reset' %}">Forgot your password?</a>
+    </p>
+  </form>
+
+  <div class="auth-foot">
+    New here? <a href="{% url 'accounts:signup' %}">Create an account</a>
+  </div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.full_name|default:"My profile" }} &middot; {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <div class="page-head-row">
+      <div>
+        <p class="eyebrow">{% if is_own %}My profile{% else %}Member profile{% endif %}</p>
+        <h1 class="profile-name">{{ profile.full_name|default:"Your profile" }}</h1>
+        <p class="profile-sub" style="margin:0;">
+          {% if profile.age %}{{ profile.age }} years{% endif %}
+          {% if profile.age and profile.location %} &middot; {% endif %}
+          {{ profile.location }}
+        </p>
+      </div>
+      {% if is_own %}
+        <a class="btn btn-ghost" href="{% url 'profiles:edit' %}">Edit profile</a>
+      {% else %}
+        <a class="btn btn-quiet" href="{% url 'profiles:browse' %}">&larr; Back to members</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if is_own and not profile.is_complete %}
+    <div class="alert alert-warning" style="margin-bottom:26px;">
+      Your profile is {{ profile.completeness_percent }}% complete and is not yet visible to
+      other members. <a href="{% url 'profiles:edit' %}">Finish it now</a>.
+    </div>
+  {% endif %}
+
+  <div class="profile-layout">
+    <div>
+      <div class="gallery-main">
+        {% if photos %}
+          {% with lead=profile.primary_photo %}
+            <img id="gallery-lead" src="{{ lead.image.url }}"
+                 alt="{{ profile.full_name }}">
+          {% endwith %}
+        {% else %}
+          <div class="avatar-fallback">{{ profile.initials }}</div>
+        {% endif %}
+      </div>
+
+      {% if photos|length > 1 %}
+        {% with lead=profile.primary_photo %}
+        <div class="gallery-thumbs" id="gallery-thumbs">
+          {% for photo in photos %}
+            <button type="button" data-full="{{ photo.image.url }}"
+                    class="{% if photo.pk == lead.pk %}is-active{% endif %}"
+                    aria-label="Show photo {{ forloop.counter }}">
+              <img src="{{ photo.image.url }}" alt="" loading="lazy">
+            </button>
+          {% endfor %}
+        </div>
+        {% endwith %}
+      {% endif %}
+
+      {% if is_own and not photos %}
+        <p class="help-text" style="text-align:center;margin-top:14px;">
+          No photos yet. <a href="{% url 'profiles:edit' %}">Add some</a> &mdash; profiles with
+          photos get far more interest.
+        </p>
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:24px;">
+        <h2 class="section-title">Details</h2>
+        <dl class="detail-list">
+          {% if profile.age %}
+            <div class="item"><dt>Age</dt><dd>{{ profile.age }} years</dd></div>
+          {% endif %}
+          {% if profile.get_gender_display %}
+            <div class="item"><dt>Gender</dt><dd>{{ profile.get_gender_display }}</dd></div>
+          {% endif %}
+          {% if profile.height_display %}
+            <div class="item"><dt>Height</dt><dd>{{ profile.height_display }}</dd></div>
+          {% endif %}
+          {% if profile.get_marital_status_display %}
+            <div class="item"><dt>Marital status</dt><dd>{{ profile.get_marital_status_display }}</dd></div>
+          {% endif %}
+          {% if profile.religion %}
+            <div class="item"><dt>Religion</dt>
+              <dd>{{ profile.religion }}{% if profile.community %} &middot; {{ profile.community }}{% endif %}</dd></div>
+          {% endif %}
+          {% if profile.mother_tongue %}
+            <div class="item"><dt>Mother tongue</dt><dd>{{ profile.mother_tongue }}</dd></div>
+          {% endif %}
+          {% if profile.location %}
+            <div class="item"><dt>Lives in</dt><dd>{{ profile.location }}</dd></div>
+          {% endif %}
+          {% if profile.education %}
+            <div class="item"><dt>Education</dt><dd>{{ profile.education }}</dd></div>
+          {% endif %}
+          {% if profile.occupation %}
+            <div class="item"><dt>Occupation</dt><dd>{{ profile.occupation }}</dd></div>
+          {% endif %}
+        </dl>
+      </div>
+
+      {% if profile.about %}
+        <div class="card">
+          <h2 class="section-title">About {{ profile.full_name|default:"me" }}</h2>
+          <p class="about-text">{{ profile.about }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if photos|length > 1 %}
+<script>
+  // Clicking a thumbnail swaps the lead image. No library needed.
+  (function () {
+    var lead = document.getElementById('gallery-lead');
+    var thumbs = document.getElementById('gallery-thumbs');
+    if (!lead || !thumbs) return;
+
+    thumbs.addEventListener('click', function (event) {
+      var button = event.target.closest('button[data-full]');
+      if (!button) return;
+      lead.src = button.dataset.full;
+      thumbs.querySelectorAll('button').forEach(function (b) {
+        b.classList.toggle('is-active', b === button);
+      });
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

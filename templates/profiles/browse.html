@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Members &middot; {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <div class="page-head-row">
+      <div>
+        <p class="eyebrow">Members area</p>
+        <h1>Meet our members</h1>
+        <p>{{ total_members }} profile{{ total_members|pluralize }} to browse.</p>
+      </div>
+      {% if not my_profile.is_complete %}
+        <a class="btn btn-primary" href="{% url 'profiles:edit' %}">Complete my profile</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not my_profile.is_complete %}
+    <div class="card" style="margin-bottom:30px;">
+      <h3 style="margin-bottom:4px;">Your profile is {{ my_profile.completeness_percent }}% complete</h3>
+      <div class="meter"><span style="width:{{ my_profile.completeness_percent }}%"></span></div>
+      <p class="help-text" style="margin-bottom:16px;">
+        Add your details and at least one photo to appear in this list yourself.
+      </p>
+      <a class="btn btn-primary btn-sm" href="{% url 'profiles:edit' %}">Continue</a>
+    </div>
+  {% endif %}
+
+  {% if page_obj.object_list %}
+    <div class="member-grid">
+      {% for profile in page_obj %}
+        <article class="member-card">
+          <a href="{{ profile.get_absolute_url }}">
+            <div class="member-photo">
+              {% with photo=profile.primary_photo %}
+                {% if photo %}
+                  <img src="{{ photo.image.url }}" alt="{{ profile.full_name }}" loading="lazy">
+                {% else %}
+                  <div class="avatar-fallback">{{ profile.initials }}</div>
+                {% endif %}
+              {% endwith %}
+              {% if profile.photos.count > 1 %}
+                <span class="photo-count">{{ profile.photos.count }} photos</span>
+              {% endif %}
+            </div>
+            <div class="member-body">
+              <h3>{{ profile.full_name }}</h3>
+              <p class="member-meta">
+                {% if profile.age %}{{ profile.age }} yrs{% endif %}
+                {% if profile.age and profile.location %} &middot; {% endif %}
+                {{ profile.location }}
+              </p>
+              <div class="member-tags">
+                {% if profile.occupation %}<span class="tag">{{ profile.occupation }}</span>{% endif %}
+                {% if profile.mother_tongue %}<span class="tag tag-gold">{{ profile.mother_tongue }}</span>{% endif %}
+                {% if profile.religion %}<span class="tag tag-wine">{{ profile.religion }}</span>{% endif %}
+              </div>
+            </div>
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+
+    {% include "partials/pagination.html" with page_obj=page_obj %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-mark" aria-hidden="true">&#10022;</div>
+      <h2>No other profiles yet</h2>
+      <p>You are one of the first members here. Complete your own profile so others can
+        find you when they join.</p>
+      <a class="btn btn-primary" href="{% url 'profiles:edit' %}">Edit my profile</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

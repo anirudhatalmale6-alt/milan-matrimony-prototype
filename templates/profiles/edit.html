@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Edit my profile &middot; {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <div class="page-head-row">
+      <div>
+        <p class="eyebrow">My account</p>
+        <h1>Edit my profile</h1>
+        <p>Fields marked <span class="required-dot">*</span> are needed before your profile
+          appears to other members.</p>
+      </div>
+      <a class="btn btn-quiet" href="{% url 'profiles:me' %}">Preview</a>
+    </div>
+  </div>
+
+  <div class="edit-layout">
+    <div class="card">
+      <h2 class="section-title">Your details</h2>
+      <form method="post" id="details-form" novalidate>
+        {% csrf_token %}
+        <div class="form-grid">
+          {% include "partials/field.html" with field=form.full_name wrapper_class="span-2" %}
+          {% include "partials/field.html" with field=form.date_of_birth %}
+          {% include "partials/field.html" with field=form.gender %}
+          {% include "partials/field.html" with field=form.height_cm %}
+          {% include "partials/field.html" with field=form.marital_status %}
+          {% include "partials/field.html" with field=form.religion %}
+          {% include "partials/field.html" with field=form.community %}
+          {% include "partials/field.html" with field=form.mother_tongue %}
+          {% include "partials/field.html" with field=form.city %}
+          {% include "partials/field.html" with field=form.country %}
+          {% include "partials/field.html" with field=form.education %}
+          {% include "partials/field.html" with field=form.occupation %}
+          {% include "partials/field.html" with field=form.about wrapper_class="span-2" %}
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save my details</button>
+          <a class="btn btn-ghost" href="{% url 'profiles:me' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="edit-side">
+      <div class="card">
+        <h2 class="section-title">Profile strength</h2>
+        <p style="margin:0;font-family:var(--font-display);font-size:2rem;line-height:1;">
+          {{ profile.completeness_percent }}%
+        </p>
+        <div class="meter"><span style="width:{{ profile.completeness_percent }}%"></span></div>
+        <p class="help-text" style="margin:0;">
+          {% if profile.is_complete %}
+            Your profile is live and visible to other members.
+          {% else %}
+            Add your name, date of birth, gender and city to go live.
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Photos</h2>
+
+        {% comment %}Posts separately from the details form so an upload never
+        discards half-typed text.{% endcomment %}
+        <form id="photo-form" method="post" action="{% url 'profiles:upload_photos' %}"
+              enctype="multipart/form-data">
+          {% csrf_token %}
+          <label class="dropzone" id="dropzone" for="photo-input">
+            <div class="dz-mark" aria-hidden="true">&#8607;</div>
+            <p class="dz-title">Drag photos here</p>
+            <p class="dz-hint">or tap to choose &mdash; JPG, PNG or WebP,
+              up to {{ max_photo_mb }} MB each</p>
+            <input type="file" id="photo-input" name="images" multiple hidden
+                   accept="image/jpeg,image/png,image/webp">
+          </label>
+          <noscript>
+            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:12px;">
+              Upload selected photos
+            </button>
+          </noscript>
+        </form>
+
+        <p class="upload-status" id="upload-status" role="status" aria-live="polite"></p>
+
+        <div class="photo-manager" id="photo-manager">
+          {% for photo in photos %}
+            <div class="photo-tile {% if photo.is_primary %}is-primary{% endif %}"
+                 data-photo-id="{{ photo.id }}">
+              <img src="{{ photo.image.url }}" alt="" loading="lazy">
+              {% if photo.is_primary %}<span class="primary-badge">Main</span>{% endif %}
+              <div class="tile-actions">
+                {% if not photo.is_primary %}
+                  <button type="button" class="tile-btn" data-action="primary"
+                          data-url="{% url 'profiles:set_primary_photo' photo.id %}">Make main</button>
+                {% endif %}
+                <button type="button" class="tile-btn danger" data-action="delete"
+                        data-url="{% url 'profiles:delete_photo' photo.id %}">Delete</button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <p class="help-text" id="photo-count">
+          {{ photos|length }} of {{ photo_limit }} photos used.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var dropzone = document.getElementById('dropzone');
+  var input = document.getElementById('photo-input');
+  var form = document.getElementById('photo-form');
+  var status = document.getElementById('upload-status');
+  var manager = document.getElementById('photo-manager');
+  var csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  function setStatus(text, kind) {
+    status.textContent = text;
+    status.className = 'upload-status' + (kind ? ' is-' + kind : '');
+  }
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+      body: body,
+      credentials: 'same-origin'
+    });
+  }
+
+  // --- uploading --------------------------------------------------------
+  function upload(files) {
+    if (!files || !files.length) return;
+
+    var data = new FormData();
+    for (var i = 0; i < files.length; i++) data.append('images', files[i]);
+    data.append('csrfmiddlewaretoken', csrf);
+
+    setStatus('Uploading ' + files.length + ' photo' + (files.length > 1 ? 's' : '') + '…', 'busy');
+
+    post(form.action, data)
+      .then(function (response) { return response.json().then(function (body) {
+        return { ok: response.ok, body: body };
+      }); })
+      .then(function (result) {
+        if (!result.ok) {
+          setStatus((result.body.errors || ['Upload failed.']).join(' '), 'error');
+          return;
+        }
+        // Reload so the new tiles, the "main photo" badge and the profile
+        // strength meter all reflect what the server actually stored.
+        window.location.reload();
+      })
+      .catch(function () {
+        setStatus('Upload failed — please check your connection and try again.', 'error');
+      });
+  }
+
+  input.addEventListener('change', function () { upload(input.files); });
+
+  ['dragenter', 'dragover'].forEach(function (name) {
+    dropzone.addEventListener(name, function (event) {
+      event.preventDefault();
+      dropzone.classList.add('is-dragging');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (name) {
+    dropzone.addEventListener(name, function (event) {
+      event.preventDefault();
+      dropzone.classList.remove('is-dragging');
+    });
+  });
+  dropzone.addEventListener('drop', function (event) {
+    if (event.dataTransfer && event.dataTransfer.files.length) {
+      upload(event.dataTransfer.files);
+    }
+  });
+
+  // --- tile actions -----------------------------------------------------
+  manager.addEventListener('click', function (event) {
+    var button = event.target.closest('button[data-action]');
+    if (!button) return;
+
+    if (button.dataset.action === 'delete' &&
+        !window.confirm('Remove this photo?')) return;
+
+    button.disabled = true;
+    post(button.dataset.url, new URLSearchParams({ csrfmiddlewaretoken: csrf }))
+      .then(function (response) {
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          button.disabled = false;
+          setStatus('That did not work. Please try again.', 'error');
+        }
+      })
+      .catch(function () {
+        button.disabled = false;
+        setStatus('That did not work. Please try again.', 'error');
+      });
+  });
+})();
+</script>
+{% endblock %}
